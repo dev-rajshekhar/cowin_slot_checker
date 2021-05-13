@@ -1,34 +1,46 @@
-import 'package:cowin_slot_checker/model/state_response.dart';
+import 'package:cowin_slot_checker/model/district_response.dart';
 import 'package:cowin_slot_checker/repo/state_repo.dart';
 import 'package:flutter/material.dart';
 
-class SelecteState extends StatefulWidget {
+class SelectDistricts extends StatefulWidget {
+  final String stateId;
+
+  const SelectDistricts({Key key, @required this.stateId}) : super(key: key);
   @override
-  _SelecteStateState createState() => _SelecteStateState();
+  _SelectDistrictsState createState() => _SelectDistrictsState();
 }
 
-class _SelecteStateState extends State<SelecteState> {
+class _SelectDistrictsState extends State<SelectDistricts> {
   StateRepo _stateRepo;
+  List<Districts> distictList = [];
+  List<Districts> searchedData = [];
+  String searchQuery = "";
   TextEditingController _textController = TextEditingController();
 
-  List<States> statesList = [];
-  List<States> searchedData = [];
-  String searchQuery = "";
-
-  Future fetchState() async {
+  Future fetchDistricts() async {
     _stateRepo = StateRepo();
-    _stateRepo.fetchAlbumDetails().then((value) {
+    _stateRepo.fetchAllDistricts(widget.stateId).then((value) {
       setState(() {
-        statesList = value.states;
-        searchedData = value.states;
+        distictList = value.districts;
+        searchedData = value.districts;
       });
     });
   }
 
   @override
   void initState() {
-    fetchState();
+    fetchDistricts();
     super.initState();
+  }
+
+  onItemChanged(String query) {
+    setState(() {
+      searchQuery = query;
+      searchedData = distictList
+          .where((string) =>
+              string.districtName.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
   @override
@@ -36,23 +48,12 @@ class _SelecteStateState extends State<SelecteState> {
     final styleActive = TextStyle(color: Colors.black);
     final styleHint = TextStyle(color: Colors.black54);
     final style = searchQuery.toString().isEmpty ? styleHint : styleActive;
-    onItemChanged(String query) {
-      setState(() {
-        searchQuery = query;
-        searchedData = statesList
-            .where((string) =>
-                string.stateName.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      });
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Select State"),
+        title: Text("Select District"),
       ),
-      body: Container(
-        color: Colors.white,
-        child: Column(children: [
+      body: Column(
+        children: [
           Container(
             height: 42,
             margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -85,33 +86,31 @@ class _SelecteStateState extends State<SelecteState> {
           ),
           searchedData.length > 0
               ? Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                    itemCount: searchedData.length,
-                    separatorBuilder: (context, index) {
-                      return Divider();
-                    },
-                    itemBuilder: (context, index) {
-                      return ListTile(
+                  child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  itemCount: searchedData.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      //                          <-- Card widget
+                      child: ListTile(
                         onTap: () {
                           Navigator.pop(
                             context,
                             {
-                              "fromWhere": "fromState",
-                              "name": searchedData[index].stateName,
-                              "id": searchedData[index].stateId.toString(),
+                              "fromWhere": "fromDistict",
+                              "name":
+                                  searchedData[index].districtName.toString(),
+                              "id": searchedData[index].districtId.toString(),
                             },
                           );
                         },
-                        title: Text(searchedData[index].stateName),
-                      );
-                    },
-                  ),
-                )
-              : Center(
-                  child: Text("Loading"),
-                ),
-        ]),
+                        title: Text(searchedData[index].districtName),
+                      ),
+                    );
+                  },
+                ))
+              : Text(""),
+        ],
       ),
     );
   }

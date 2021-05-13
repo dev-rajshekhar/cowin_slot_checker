@@ -24,11 +24,12 @@ class _AvailableSlotsState extends State<AvailableSlots> {
   StateRepo slotsRepo;
   List<Centers> centreList = [];
 
-  String date = "12-05-2021";
+  String date = "";
   Future fetchSlots() async {
     var dt = DateTime.now();
-    String fromat = DateFormat("dd-MM-yyyy").format(dt);
-    print("fromat--->" + fromat);
+    setState(() {
+      date = DateFormat("dd-MM-yyyy").format(dt);
+    });
     Map<String, String> queryParams = {
       'district_id': widget.districtId.toString(),
       'date': date
@@ -53,11 +54,38 @@ class _AvailableSlotsState extends State<AvailableSlots> {
     return Scaffold(
       appBar: AppBar(title: Text("Find Your Slots")),
       body: Container(
+        color: Color(0xFFF8F8F8),
         child: Column(
           children: [
+            Text(
+              DateFormat("MMM dd, yyyy").format(DateTime.now()),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: RichText(
+                text: TextSpan(
+                    text: 'Note: ',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.0),
+                    children: [
+                      TextSpan(
+                        text:
+                            'Open slots exhaust quickly so the availibity here might differ from that is available whn you login to cowin.',
+                        style: TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 12.0),
+                      ),
+                    ]),
+              ),
+            ),
             Expanded(
               child: ListView.builder(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
                   itemCount: centreList.length,
                   itemBuilder: (context, index) {
                     var centerInfo = centreList[index];
@@ -110,7 +138,7 @@ class RenderCenter extends StatelessWidget {
                               color: Colors.black,
                               fontWeight: FontWeight.bold)),
                       Text(
-                        "50 Slots",
+                        sessions[0].availableCapacity.toString() + "slots",
                         style: TextStyle(
                             fontSize: 16.0,
                             color: Color(0xFF00C7E2),
@@ -173,7 +201,7 @@ class TextWithPadding extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
       child: Text(
         text,
-        style: TextStyle(fontSize: 16.0, color: Colors.black),
+        style: TextStyle(fontSize: 12.0, color: Colors.black),
         textAlign: TextAlign.center,
       ),
     );
