@@ -1,10 +1,11 @@
-# cowin_slot_checker
+# Cowin Slot Checker
 
-A new Flutter project.
+An application to track the available slots for vaccination.
 
 ## Getting Started
 
 This project is a starting point for a Flutter application.
+
 
 A few resources to get you started if this is your first Flutter project:
 
