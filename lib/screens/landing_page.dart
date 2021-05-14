@@ -42,6 +42,8 @@ class _MyHomePageState extends State<MyHomePage> {
         stateName = deCodedData["name"];
         stateId = deCodedData["id"];
       }
+      districtName = "";
+      districtId = "";
     });
     print(stateName);
   }

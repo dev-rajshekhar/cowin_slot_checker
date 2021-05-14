@@ -114,7 +114,7 @@ class _SelecteStateState extends State<SelecteState> {
                     ),
                   )
                 : Center(
-                    child: Text("Loading"),
+                    child: CircularProgressIndicator(),
                   ),
           ]),
         ),

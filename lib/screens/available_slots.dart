@@ -1,3 +1,4 @@
+import 'package:cowin_slot_checker/constants/string_constants.dart';
 import 'package:cowin_slot_checker/model/slots_response.dart';
 import 'package:cowin_slot_checker/repo/state_repo.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +40,22 @@ class _AvailableSlotsState extends State<AvailableSlots> {
     slotsRepo.fetchAllSlotsByDistrict(queryParams).then((value) {
       setState(() {
         centreList = value.centers;
+        fetchSlotMinAge();
       });
     });
+  }
+
+  List<Sessions> fetchSlotMinAge() {
+    List<Sessions> sessionList = [];
+    for (var i = 0; i < centreList.length; i++) {
+      List<Sessions> session = centreList[i]
+          .sessions
+          .where((string) => string.date.contains(date))
+          .where((item) => item.availableCapacity > 0)
+          .toList();
+      sessionList = sessionList..addAll(session);
+    }
+    return sessionList;
   }
 
   @override
@@ -84,13 +99,16 @@ class _AvailableSlotsState extends State<AvailableSlots> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 10.0),
-                  itemCount: centreList.length,
-                  itemBuilder: (context, index) {
-                    var centerInfo = centreList[index];
-                    return RenderCenter(center: centerInfo, date: date);
-                  }),
+              child: fetchSlotMinAge().length > 0
+                  ? ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 10.0),
+                      itemCount: centreList.length,
+                      itemBuilder: (context, index) {
+                        var centerInfo = centreList[index];
+
+                        return RenderCenter(center: centerInfo, date: date);
+                      })
+                  : Center(child: Text("No Data Found")),
             )
           ],
         ),
@@ -118,7 +136,7 @@ class RenderCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Sessions> sessions = fetchSlotMinAge(center);
-    return sessions.length > 0
+    return sessions.length > 0 && sessions[0].availableCapacity > 0
         ? Card(
             elevation: 4.0,
             margin: new EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
@@ -138,7 +156,7 @@ class RenderCenter extends StatelessWidget {
                               color: Colors.black,
                               fontWeight: FontWeight.bold)),
                       Text(
-                        sessions[0].availableCapacity.toString() + "slots",
+                        sessions[0].availableCapacity.toString() + " slots",
                         style: TextStyle(
                             fontSize: 16.0,
                             color: Color(0xFF00C7E2),
@@ -166,7 +184,13 @@ class RenderCenter extends StatelessWidget {
                       Spacer(),
                       TextButton(
                         onPressed: () {},
-                        child: Text("Book on Cowin"),
+                        child: Text(
+                          StringConstants.BOOK_ON_COWIN,
+                          style: TextStyle(
+                              fontSize: 12.0,
+                              color: Color(0xFFFFFFFF),
+                              fontWeight: FontWeight.bold),
+                        ),
                         style: TextButton.styleFrom(
                           minimumSize: Size(120.0, 30.0),
                           backgroundColor: Color(0xFF6C6DC9),
