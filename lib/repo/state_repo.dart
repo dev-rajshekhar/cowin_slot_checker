@@ -24,9 +24,9 @@ class StateRepo {
     return SlotsResponse.fromJson(response);
   }
 
-  Future<SlotsResponse> fetchAllSlotsByPin() async {
-    final response =
-        await HttpClient.instance.fetchData(ApiConstant.GET_DISTRICTS);
+  Future<SlotsResponse> fetchAllSlotsByPin(Map<String, String> param) async {
+    final response = await HttpClient.instance
+        .fetchData(ApiConstant.GET_SLOTS_BY_PIN, params: param);
 
     return SlotsResponse.fromJson(response);
   }

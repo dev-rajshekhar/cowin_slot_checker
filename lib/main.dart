@@ -1,3 +1,4 @@
+import 'package:cowin_slot_checker/constants/color_constants.dart';
 import 'package:cowin_slot_checker/route.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: ColorConstants.kBlueColor,
       ),
       debugShowCheckedModeBanner: false,
       onGenerateRoute: appRoutes.onGenerateRoute,

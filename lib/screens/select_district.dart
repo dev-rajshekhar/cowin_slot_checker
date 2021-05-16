@@ -86,30 +86,33 @@ class _SelectDistrictsState extends State<SelectDistricts> {
           ),
           searchedData.length > 0
               ? Expanded(
-                  child: ListView.builder(
+                  child: ListView.separated(
+                  shrinkWrap: true,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                   itemCount: searchedData.length,
+                  separatorBuilder: (context, index) {
+                    return Divider();
+                  },
                   itemBuilder: (context, index) {
-                    return Card(
-                      //                          <-- Card widget
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.pop(
-                            context,
-                            {
-                              "fromWhere": "fromDistict",
-                              "name":
-                                  searchedData[index].districtName.toString(),
-                              "id": searchedData[index].districtId.toString(),
-                            },
-                          );
-                        },
-                        title: Text(searchedData[index].districtName),
-                      ),
+                    return ListTile(
+                      onTap: () {
+                        FocusScope.of(context).requestFocus(FocusNode());
+
+                        Navigator.pop(context, [
+                          "fromDistict",
+                          searchedData[index].districtName.toString(),
+                          searchedData[index].districtId.toString()
+                        ]);
+                      },
+                      title: Text(searchedData[index].districtName),
                     );
                   },
                 ))
-              : Text(""),
+              : Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
         ],
       ),
     );

@@ -1,6 +1,8 @@
+import 'package:cowin_slot_checker/constants/api_constant.dart';
 import 'package:cowin_slot_checker/constants/string_constants.dart';
 import 'package:cowin_slot_checker/model/slots_response.dart';
 import 'package:cowin_slot_checker/repo/state_repo.dart';
+import 'package:cowin_slot_checker/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -9,14 +11,18 @@ class AvailableSlots extends StatefulWidget {
   final String stateName;
   final String districtId;
   final String districName;
+  final String pinCode;
+  final String selectedDate;
 
-  const AvailableSlots(
-      {Key key,
-      @required this.stateId,
-      @required this.stateName,
-      @required this.districtId,
-      @required this.districName})
-      : super(key: key);
+  const AvailableSlots({
+    Key key,
+    @required this.stateId,
+    @required this.stateName,
+    @required this.districtId,
+    @required this.districName,
+    @required this.pinCode,
+    @required this.selectedDate,
+  }) : super(key: key);
   @override
   _AvailableSlotsState createState() => _AvailableSlotsState();
 }
@@ -24,25 +30,38 @@ class AvailableSlots extends StatefulWidget {
 class _AvailableSlotsState extends State<AvailableSlots> {
   StateRepo slotsRepo;
   List<Centers> centreList = [];
+  List<Map<String, String>> filterOptionList = [
+    {"key": "min_age", "value": "18"},
+    {"key": "min_age", "value": "45"},
+    {"key": "paid_type", "value": "Free"},
+    {"key": "paid_type", "value": "Paid"},
+  ];
+  List<Map<String, String>> selectedChoices = [];
 
-  String date = "";
   Future fetchSlots() async {
-    var dt = DateTime.now();
-    setState(() {
-      date = DateFormat("dd-MM-yyyy").format(dt);
-    });
     Map<String, String> queryParams = {
       'district_id': widget.districtId.toString(),
-      'date': date
+      'date': widget.selectedDate.toString()
+    };
+    Map<String, String> queryParamsByPin = {
+      'pincode': widget.pinCode.toString(),
+      'date': widget.selectedDate.toString()
     };
 
     slotsRepo = StateRepo();
-    slotsRepo.fetchAllSlotsByDistrict(queryParams).then((value) {
-      setState(() {
-        centreList = value.centers;
-        fetchSlotMinAge();
-      });
-    });
+    widget.pinCode.isNotEmpty
+        ? slotsRepo.fetchAllSlotsByPin(queryParamsByPin).then((value) {
+            setState(() {
+              centreList = value.centers;
+              fetchSlotMinAge();
+            });
+          })
+        : slotsRepo.fetchAllSlotsByDistrict(queryParams).then((value) {
+            setState(() {
+              centreList = value.centers;
+              fetchSlotMinAge();
+            });
+          });
   }
 
   List<Sessions> fetchSlotMinAge() {
@@ -50,12 +69,44 @@ class _AvailableSlotsState extends State<AvailableSlots> {
     for (var i = 0; i < centreList.length; i++) {
       List<Sessions> session = centreList[i]
           .sessions
-          .where((string) => string.date.contains(date))
-          .where((item) => item.availableCapacity > 0)
+          .where(
+              (string) => string.date.contains(widget.selectedDate.toString()))
+          // .where((item) => item.availableCapacity > 0)
           .toList();
       sessionList = sessionList..addAll(session);
     }
     return sessionList;
+  }
+
+  // filterSlots({String key, String value}) {
+  //   print("key" + key + "value:" + value);
+  //   List<Sessions> sessionList = [];
+  //   List<Centers> centers = [];
+
+  //   for (var i = 0; i < centreList.length; i++) {
+  //     List<Sessions> session = centreList[i]
+  //         .sessions
+  //         .where(
+  //             (string) => string.date.contains(widget.selectedDate.toString()))
+  //         .where((item) => item.minAgeLimit == 18)
+  //         .toList();
+
+  //     if (session.length > 0) {
+  //       centers..add(centreList[i]);
+  //     }
+
+  //     sessionList = sessionList..addAll(session);
+  //   }
+  //   print("===Flutter" + centers.toString());
+  // }
+
+  String getDateString(String date) {
+    DateTime parseDate = DateFormat("dd-MM-yyyy").parse(date);
+    var inputDate = DateTime.parse(parseDate.toString());
+    var outputFormat = DateFormat('MMM dd, yyyy');
+    var outputDate = outputFormat.format(inputDate);
+
+    return outputDate;
   }
 
   @override
@@ -66,52 +117,84 @@ class _AvailableSlotsState extends State<AvailableSlots> {
 
   @override
   Widget build(BuildContext context) {
+    // print("object" + date.toString());
     return Scaffold(
       appBar: AppBar(title: Text("Find Your Slots")),
-      body: Container(
-        color: Color(0xFFF8F8F8),
-        child: Column(
-          children: [
-            Text(
-              DateFormat("MMM dd, yyyy").format(DateTime.now()),
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: RichText(
-                text: TextSpan(
-                    text: 'Note: ',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12.0),
-                    children: [
-                      TextSpan(
-                        text:
-                            'Open slots exhaust quickly so the availibity here might differ from that is available whn you login to cowin.',
+      body: ListView(
+        children: [
+          // Container(
+          //   height: 150.0,
+          //   color: Colors.white,
+          //   child: Row(
+          //     children: [
+          //       ...filterOptionList.map((label) {
+          //         return ChoiceChip(
+          //           label: Text(label["value"]),
+          //           onSelected: (selected) {
+          //             setState(() {
+          //               selectedChoices.contains(label)
+          //                   ? selectedChoices.remove(label)
+          //                   : selectedChoices.add(label);
+          //             });
+          //           },
+          //           selected: selectedChoices.contains(label),
+          //         );
+          //       }),
+          //     ],
+          //   ),
+          // ),
+          Container(
+            margin: EdgeInsets.all(10.0),
+            color: Color(0xFFF8F8F8),
+            child: Column(
+              children: [
+                Text(
+                  getDateString(widget.selectedDate),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: RichText(
+                    text: TextSpan(
+                        text: 'Note: ',
                         style: TextStyle(
-                            fontWeight: FontWeight.normal, fontSize: 12.0),
-                      ),
-                    ]),
-              ),
-            ),
-            Expanded(
-              child: fetchSlotMinAge().length > 0
-                  ? ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 10.0),
-                      itemCount: centreList.length,
-                      itemBuilder: (context, index) {
-                        var centerInfo = centreList[index];
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0),
+                        children: [
+                          TextSpan(
+                            text:
+                                'Open slots exhaust quickly so the availibity here might differ from that is available whn you login to cowin.',
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal, fontSize: 12.0),
+                          ),
+                        ]),
+                  ),
+                ),
+                fetchSlotMinAge().length > 0
+                    ? ListView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.symmetric(horizontal: 10.0),
+                        itemCount: centreList.length,
+                        itemBuilder: (context, index) {
+                          var centerInfo = centreList[index];
 
-                        return RenderCenter(center: centerInfo, date: date);
-                      })
-                  : Center(child: Text("No Data Found")),
-            )
-          ],
-        ),
+                          return RenderCenter(
+                              center: centerInfo,
+                              date: widget.selectedDate.toString());
+                        })
+                    : Container(
+                        child: Center(
+                            child: Text(
+                                "No Vaccination center is available for booking.")),
+                      )
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,7 +219,7 @@ class RenderCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Sessions> sessions = fetchSlotMinAge(center);
-    return sessions.length > 0 && sessions[0].availableCapacity > 0
+    return sessions.length > 0
         ? Card(
             elevation: 4.0,
             margin: new EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
@@ -166,7 +249,7 @@ class RenderCenter extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    center.blockName + ", " + center.pincode.toString(),
+                    center.address + ", " + center.pincode.toString(),
                     style: TextStyle(
                         fontSize: 14.0,
                         color: Color(0xFF666666),
@@ -178,12 +261,15 @@ class RenderCenter extends StatelessWidget {
                     children: [
                       TextWithPadding(text: center.feeType),
                       Spacer(),
-                      TextWithPadding(text: sessions[0].minAgeLimit.toString()),
+                      TextWithPadding(
+                          text: sessions[0].minAgeLimit.toString() + "+"),
                       Spacer(),
                       TextWithPadding(text: sessions[0].vaccine.toString()),
                       Spacer(),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Utils.openLink(url: ApiConstant.COWIN_WEB);
+                        },
                         child: Text(
                           StringConstants.BOOK_ON_COWIN,
                           style: TextStyle(

@@ -30,6 +30,8 @@ class AppRoutes {
             stateId: arguments[1],
             districtId: arguments[3],
             stateName: arguments[0],
+            pinCode: arguments[4],
+            selectedDate: arguments[5],
           ),
         );
 

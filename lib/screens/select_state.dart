@@ -89,6 +89,7 @@ class _SelecteStateState extends State<SelecteState> {
             searchedData.length > 0
                 ? Expanded(
                     child: ListView.separated(
+                      shrinkWrap: true,
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                       itemCount: searchedData.length,
                       separatorBuilder: (context, index) {
@@ -99,22 +100,27 @@ class _SelecteStateState extends State<SelecteState> {
                           onTap: () {
                             FocusScope.of(context).requestFocus(FocusNode());
 
-                            Navigator.pop(
-                              context,
-                              {
-                                "fromWhere": "fromState",
-                                "name": searchedData[index].stateName,
-                                "id": searchedData[index].stateId.toString(),
-                              },
-                            );
+                            Navigator.pop(context, [
+                              "fromState",
+                              searchedData[index].stateName,
+                              searchedData[index].stateId.toString()
+                            ]
+                                // {
+                                //   "fromWhere": "fromState",
+                                //   "name": searchedData[index].stateName,
+                                //   "id": searchedData[index].stateId.toString(),
+                                // },
+                                );
                           },
                           title: Text(searchedData[index].stateName),
                         );
                       },
                     ),
                   )
-                : Center(
-                    child: CircularProgressIndicator(),
+                : Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
           ]),
         ),
