@@ -30,6 +30,7 @@ class AvailableSlots extends StatefulWidget {
 class _AvailableSlotsState extends State<AvailableSlots> {
   StateRepo slotsRepo;
   List<Centers> centreList = [];
+  bool isLoading = true;
   List<Map<String, String>> filterOptionList = [
     {"key": "min_age", "value": "18"},
     {"key": "min_age", "value": "45"},
@@ -54,12 +55,21 @@ class _AvailableSlotsState extends State<AvailableSlots> {
             setState(() {
               centreList = value.centers;
               fetchSlotMinAge();
+              isLoading = false;
+            });
+          }).onError((error, stackTrace) {
+            setState(() {
+              isLoading = false;
             });
           })
         : slotsRepo.fetchAllSlotsByDistrict(queryParams).then((value) {
             setState(() {
               centreList = value.centers;
               fetchSlotMinAge();
+            });
+          }).onError((error, stackTrace) {
+            setState(() {
+              isLoading = false;
             });
           });
   }
@@ -174,23 +184,28 @@ class _AvailableSlotsState extends State<AvailableSlots> {
                         ]),
                   ),
                 ),
-                fetchSlotMinAge().length > 0
-                    ? ListView.builder(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.symmetric(horizontal: 10.0),
-                        itemCount: centreList.length,
-                        itemBuilder: (context, index) {
-                          var centerInfo = centreList[index];
+                !isLoading
+                    ? fetchSlotMinAge().length > 0
+                        ? ListView.builder(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.symmetric(horizontal: 10.0),
+                            itemCount: centreList.length,
+                            itemBuilder: (context, index) {
+                              var centerInfo = centreList[index];
 
-                          return RenderCenter(
-                              center: centerInfo,
-                              date: widget.selectedDate.toString());
-                        })
+                              return RenderCenter(
+                                  center: centerInfo,
+                                  date: widget.selectedDate.toString());
+                            })
+                        : Container(
+                            height: MediaQuery.of(context).size.height * 0.8,
+                            child: Center(
+                                child: Text(
+                                    "No Vaccination center is available for booking.")),
+                          )
                     : Container(
-                        child: Center(
-                            child: Text(
-                                "No Vaccination center is available for booking.")),
-                      )
+                        height: MediaQuery.of(context).size.height * 0.8,
+                        child: Center(child: CircularProgressIndicator()))
               ],
             ),
           ),

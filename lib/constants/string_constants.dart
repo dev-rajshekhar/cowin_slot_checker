@@ -2,7 +2,7 @@ class StringConstants {
   static const String OPEN_SLOT_WARINIG =
       "Open slots exhaust quickly so the availibity here might differ from that is available whn you login to cowin.";
   static const String NOTE = "Note:";
-  static const String GET_SLOTS = "GET SLOTS";
+  static const String GET_SLOTS = "Get Slots";
   static const String STATE = "STATE";
   static const String DISTRICT = "DISTRICT";
   static const String SELECT_DISTRICT = " Select District";

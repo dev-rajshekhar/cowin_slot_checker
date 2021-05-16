@@ -57,6 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
+        keyboardType: TextInputType.number,
         controller: _textController,
         decoration: InputDecoration(
           hintText: 'Enter Your Pincode.',
@@ -170,6 +171,9 @@ class _MyHomePageState extends State<MyHomePage> {
               duration: const Duration(seconds: 1),
             ),
           );
+
+    await Future.delayed(Duration(seconds: 1));
+
     setState(() {
       isButtonEnabled = false;
     });
@@ -255,80 +259,89 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SafeArea(
-            child: Column(
-              children: [
-                SvgPicture.asset(assets),
-                Text(
-                  StringConstants.ENTER_YOUR_LOCATION,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 28.0,
-                      fontWeight: FontWeight.normal),
-                ),
-                SizedBox(
-                  height: 30.0,
-                ),
-                buildRadioButton(),
-                radioButtonItem == "District"
-                    ? Column(children: [
-                        buildFomSelection(
-                            key: StringConstants.STATE,
-                            value: stateName,
-                            function: navigateToStatePage),
-                        SizedBox(
-                          height: 10.0,
-                        ),
-                        buildFomSelection(
-                            key: StringConstants.DISTRICT,
-                            value: districtName,
-                            function: navigateToDisttictPage),
-                      ])
-                    : buildTextField(),
-                SizedBox(
-                  height: 10.0,
-                ),
-                buildDatePicker(),
-                SizedBox(
-                  height: 20.0,
-                ),
-                InkWell(
-                  onTap: () {
-                    navigateToSlotsScreen();
-                  },
-                  child: AnimatedContainer(
-                    duration: Duration(seconds: 1),
-                    width: isButtonEnabled
-                        ? 50
-                        : MediaQuery.of(context).size.width,
-                    height: 50,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Color(0xFF6C6DC9),
-                      borderRadius:
-                          BorderRadius.circular(isButtonEnabled ? 50.0 : 50.0),
+      backgroundColor: Colors.white,
+      body: ListView(
+        shrinkWrap: true,
+        children: [
+          Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    SvgPicture.asset(
+                      assets,
+                      height: MediaQuery.of(context).size.height * 0.4,
                     ),
-                    child: isButtonEnabled
-                        ? Icon(Icons.done, color: Colors.white)
-                        : Text(
-                            StringConstants.GET_SLOTS,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold),
-                          ),
-                  ),
+                    Text(
+                      StringConstants.ENTER_YOUR_LOCATION,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.normal),
+                    ),
+                    SizedBox(
+                      height: 30.0,
+                    ),
+                    buildRadioButton(),
+                    radioButtonItem == "District"
+                        ? Column(children: [
+                            buildFomSelection(
+                                key: StringConstants.STATE,
+                                value: stateName,
+                                function: navigateToStatePage),
+                            SizedBox(
+                              height: 10.0,
+                            ),
+                            buildFomSelection(
+                                key: StringConstants.DISTRICT,
+                                value: districtName,
+                                function: navigateToDisttictPage),
+                          ])
+                        : buildTextField(),
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    buildDatePicker(),
+                    SizedBox(
+                      height: 20.0,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        navigateToSlotsScreen();
+                      },
+                      child: AnimatedContainer(
+                        duration: Duration(seconds: 1),
+                        width: isButtonEnabled
+                            ? 50
+                            : MediaQuery.of(context).size.width,
+                        height: 50,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Color(0xFF6C6DC9),
+                          borderRadius: BorderRadius.circular(
+                              isButtonEnabled ? 50.0 : 50.0),
+                        ),
+                        child: isButtonEnabled
+                            ? Icon(Icons.done, color: Colors.white)
+                            : Text(
+                                StringConstants.GET_SLOTS,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
