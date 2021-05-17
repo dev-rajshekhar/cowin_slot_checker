@@ -118,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
         initialEntryMode: DatePickerEntryMode.calendar,
         context: context,
         initialDate: date ?? initialDate,
-        firstDate: DateTime(DateTime.now().year),
+        firstDate: DateTime.now(),
         lastDate: DateTime(DateTime.now().year + 1));
 
     if (newDate == null) return;

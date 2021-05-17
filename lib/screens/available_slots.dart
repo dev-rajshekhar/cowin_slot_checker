@@ -1,8 +1,7 @@
-import 'package:cowin_slot_checker/constants/api_constant.dart';
-import 'package:cowin_slot_checker/constants/string_constants.dart';
+import 'package:cowin_slot_checker/constants/color_constants.dart';
 import 'package:cowin_slot_checker/model/slots_response.dart';
 import 'package:cowin_slot_checker/repo/state_repo.dart';
-import 'package:cowin_slot_checker/utils/utils.dart';
+import 'package:cowin_slot_checker/widgest/render_center.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -30,16 +29,17 @@ class AvailableSlots extends StatefulWidget {
 class _AvailableSlotsState extends State<AvailableSlots> {
   StateRepo slotsRepo;
   List<Centers> centreList = [];
+  List<Centers> filteredList = [];
+
   bool isLoading = true;
-  List<Map<String, String>> filterOptionList = [
-    {"key": "min_age", "value": "18"},
-    {"key": "min_age", "value": "45"},
-    {"key": "paid_type", "value": "Free"},
-    {"key": "paid_type", "value": "Paid"},
-  ];
+  var clickedDate = "";
+  int _choiceIndex = 0;
+  bool _isSlotAvailable = false;
+
   List<Map<String, String>> selectedChoices = [];
 
   Future fetchSlots() async {
+    clickedDate = widget.selectedDate.toString();
     Map<String, String> queryParams = {
       'district_id': widget.districtId.toString(),
       'date': widget.selectedDate.toString()
@@ -54,7 +54,8 @@ class _AvailableSlotsState extends State<AvailableSlots> {
         ? slotsRepo.fetchAllSlotsByPin(queryParamsByPin).then((value) {
             setState(() {
               centreList = value.centers;
-              fetchSlotMinAge();
+              fetchSlotMinAge(clickedDate, _isSlotAvailable);
+              fetchCentreByDate(clickedDate, _isSlotAvailable);
               isLoading = false;
             });
           }).onError((error, stackTrace) {
@@ -65,53 +66,97 @@ class _AvailableSlotsState extends State<AvailableSlots> {
         : slotsRepo.fetchAllSlotsByDistrict(queryParams).then((value) {
             setState(() {
               centreList = value.centers;
-              fetchSlotMinAge();
+              fetchSlotMinAge(clickedDate, _isSlotAvailable);
+              fetchCentreByDate(clickedDate, _isSlotAvailable);
+
+              isLoading = false;
             });
           }).onError((error, stackTrace) {
             setState(() {
               isLoading = false;
             });
           });
+
+    print("===>" + centreList.toString());
   }
 
-  List<Sessions> fetchSlotMinAge() {
-    List<Sessions> sessionList = [];
+  List<String> getSlotsDate() {
+    List<String> dates = [];
     for (var i = 0; i < centreList.length; i++) {
-      List<Sessions> session = centreList[i]
-          .sessions
-          .where(
-              (string) => string.date.contains(widget.selectedDate.toString()))
-          // .where((item) => item.availableCapacity > 0)
-          .toList();
-      sessionList = sessionList..addAll(session);
+      List<Sessions> session = centreList[i].sessions;
+      for (var j = 0; j < session.length; j++) {
+        dates.add(session[j].date.toString());
+      }
     }
+    return dates.toSet().toList();
+  }
+
+  List<Sessions> fetchSlotMinAge(String date, bool isAvailableSlots) {
+    List<Sessions> sessionList = [];
+    if (isAvailableSlots) {
+      for (var i = 0; i < centreList.length; i++) {
+        List<Sessions> session = centreList[i]
+            .sessions
+            .where((string) => string.date.contains(date))
+            .where((item) => item.availableCapacity > 0)
+            .toList();
+        sessionList = sessionList..addAll(session);
+      }
+    } else {
+      for (var i = 0; i < centreList.length; i++) {
+        List<Sessions> session = centreList[i]
+            .sessions
+            .where((string) => string.date.contains(date))
+            // .where((item) => item.availableCapacity > 0)
+            .toList();
+        sessionList = sessionList..addAll(session);
+      }
+    }
+    print("sessionList" + sessionList.length.toString());
+
     return sessionList;
   }
 
-  // filterSlots({String key, String value}) {
-  //   print("key" + key + "value:" + value);
-  //   List<Sessions> sessionList = [];
-  //   List<Centers> centers = [];
+  fetchCentreByDate(String date, bool isAvailableSlots) {
+    List<Centers> centreLists = [];
+    filteredList.clear();
+    if (isAvailableSlots) {
+      for (var i = 0; i < centreList.length; i++) {
+        List<Sessions> session = centreList[i]
+            .sessions
+            .where((string) => string.date.contains(date))
+            .where((item) => item.availableCapacity > 0)
+            .toList();
+        if (session.length > 0) {
+          centreLists.add(centreList[i]);
 
-  //   for (var i = 0; i < centreList.length; i++) {
-  //     List<Sessions> session = centreList[i]
-  //         .sessions
-  //         .where(
-  //             (string) => string.date.contains(widget.selectedDate.toString()))
-  //         .where((item) => item.minAgeLimit == 18)
-  //         .toList();
+          setState(() {
+            filteredList = centreLists;
+          });
+        }
+      }
+    } else {
+      for (var i = 0; i < centreList.length; i++) {
+        List<Sessions> session = centreList[i]
+            .sessions
+            .where((string) => string.date.contains(date))
+            // .where((item) => item.availableCapacity > 0)
+            .toList();
+        if (session.length > 0) {
+          centreLists.add(centreList[i]);
 
-  //     if (session.length > 0) {
-  //       centers..add(centreList[i]);
-  //     }
+          setState(() {
+            filteredList = centreLists;
+          });
+        }
+      }
+    }
 
-  //     sessionList = sessionList..addAll(session);
-  //   }
-  //   print("===Flutter" + centers.toString());
-  // }
+    print("filteredList" + filteredList.length.toString());
+  }
 
-  String getDateString(String date) {
-    DateTime parseDate = DateFormat("dd-MM-yyyy").parse(date);
+  String getDateString(String selectedDate) {
+    DateTime parseDate = DateFormat("dd-MM-yyyy").parse(selectedDate);
     var inputDate = DateTime.parse(parseDate.toString());
     var outputFormat = DateFormat('MMM dd, yyyy');
     var outputDate = outputFormat.format(inputDate);
@@ -131,39 +176,88 @@ class _AvailableSlotsState extends State<AvailableSlots> {
     return Scaffold(
       appBar: AppBar(title: Text("Find Your Slots")),
       body: ListView(
+        physics: ScrollPhysics(),
         children: [
-          // Container(
-          //   height: 150.0,
-          //   color: Colors.white,
-          //   child: Row(
-          //     children: [
-          //       ...filterOptionList.map((label) {
-          //         return ChoiceChip(
-          //           label: Text(label["value"]),
-          //           onSelected: (selected) {
-          //             setState(() {
-          //               selectedChoices.contains(label)
-          //                   ? selectedChoices.remove(label)
-          //                   : selectedChoices.add(label);
-          //             });
-          //           },
-          //           selected: selectedChoices.contains(label),
-          //         );
-          //       }),
-          //     ],
-          //   ),
-          // ),
+          Container(
+            height: 60.0,
+            color: Colors.white,
+            child: ListView.builder(
+              padding: EdgeInsets.all(6),
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemCount: getSlotsDate().length,
+              itemBuilder: (context, index) {
+                var label = getSlotsDate()[index];
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ChoiceChip(
+                    shape: StadiumBorder(side: BorderSide()),
+                    selected: _choiceIndex == index,
+                    selectedColor: ColorConstants.kBlueColor,
+                    backgroundColor: Color(0xFFFAFAFA),
+                    label: Text(
+                      getDateString(label),
+                      style: TextStyle(
+                          color: _choiceIndex == index
+                              ? Colors.white
+                              : Colors.black,
+                          fontSize: 12.0),
+                    ),
+                    onSelected: (selected) {
+                      setState(() {
+                        _choiceIndex = selected ? index : 0;
+
+                        clickedDate = label;
+                      });
+                      fetchSlotMinAge(clickedDate, _isSlotAvailable);
+                      fetchCentreByDate(clickedDate, _isSlotAvailable);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            height: 50.0,
+            color: Colors.white,
+            child: Row(
+              children: [
+                Checkbox(
+                  value: _isSlotAvailable,
+                  onChanged: (value) {
+                    setState(() {
+                      _isSlotAvailable = value;
+                    });
+                    fetchSlotMinAge(clickedDate, _isSlotAvailable);
+                    fetchCentreByDate(clickedDate, _isSlotAvailable);
+                  },
+                ),
+                Text(
+                  'Show only available Slots.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Container(
             margin: EdgeInsets.all(10.0),
             color: Color(0xFFF8F8F8),
             child: Column(
               children: [
-                Text(
-                  getDateString(widget.selectedDate),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      getDateString(clickedDate),
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0),
+                    ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -185,18 +279,21 @@ class _AvailableSlotsState extends State<AvailableSlots> {
                   ),
                 ),
                 !isLoading
-                    ? fetchSlotMinAge().length > 0
+                    ? fetchSlotMinAge(widget.selectedDate, _isSlotAvailable)
+                                .length >
+                            0
                         ? ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             padding: EdgeInsets.symmetric(horizontal: 10.0),
-                            itemCount: centreList.length,
+                            itemCount: filteredList.length,
                             itemBuilder: (context, index) {
-                              var centerInfo = centreList[index];
+                              var centerInfo = filteredList[index];
 
                               return RenderCenter(
-                                  center: centerInfo,
-                                  date: widget.selectedDate.toString());
-                            })
+                                  center: centerInfo, date: clickedDate);
+                            },
+                          )
                         : Container(
                             height: MediaQuery.of(context).size.height * 0.8,
                             child: Center(
@@ -210,124 +307,6 @@ class _AvailableSlotsState extends State<AvailableSlots> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class RenderCenter extends StatelessWidget {
-  final Centers center;
-  final String date;
-
-  const RenderCenter({Key key, @required this.center, @required this.date})
-      : super(key: key);
-
-  List<Sessions> fetchSlotMinAge(
-    Centers centers,
-  ) {
-    List<Sessions> sessions =
-        centers.sessions.where((string) => string.date.contains(date)).toList();
-
-    return sessions;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    List<Sessions> sessions = fetchSlotMinAge(center);
-    return sessions.length > 0
-        ? Card(
-            elevation: 4.0,
-            margin: new EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
-            child: Container(
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(color: Colors.white),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(center.name,
-                          style: TextStyle(
-                              fontSize: 16.0,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold)),
-                      Text(
-                        sessions[0].availableCapacity.toString() + " slots",
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            color: Color(0xFF00C7E2),
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    center.address + ", " + center.pincode.toString(),
-                    style: TextStyle(
-                        fontSize: 14.0,
-                        color: Color(0xFF666666),
-                        fontWeight: FontWeight.normal),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      TextWithPadding(text: center.feeType),
-                      Spacer(),
-                      TextWithPadding(
-                          text: sessions[0].minAgeLimit.toString() + "+"),
-                      Spacer(),
-                      TextWithPadding(text: sessions[0].vaccine.toString()),
-                      Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          Utils.openLink(url: ApiConstant.COWIN_WEB);
-                        },
-                        child: Text(
-                          StringConstants.BOOK_ON_COWIN,
-                          style: TextStyle(
-                              fontSize: 12.0,
-                              color: Color(0xFFFFFFFF),
-                              fontWeight: FontWeight.bold),
-                        ),
-                        style: TextButton.styleFrom(
-                          minimumSize: Size(120.0, 30.0),
-                          backgroundColor: Color(0xFF6C6DC9),
-                          primary: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          )
-        : Text("");
-  }
-}
-
-class TextWithPadding extends StatelessWidget {
-  final String text;
-  const TextWithPadding({
-    Key key,
-    @required this.text,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Color(0xFFEDF9F7),
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 12.0, color: Colors.black),
-        textAlign: TextAlign.center,
       ),
     );
   }
