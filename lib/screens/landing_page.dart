@@ -1,4 +1,5 @@
 import 'package:cowin_slot_checker/constants/app_routs.dart';
+import 'package:cowin_slot_checker/constants/color_constants.dart';
 import 'package:cowin_slot_checker/constants/string_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -18,10 +19,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String assets = "assets/banner.svg";
   String radioButtonItem = 'Pincode';
   String pinCode = "";
-  int id = 1;
   DateTime date = DateTime.now();
   TextEditingController _textController = TextEditingController();
-
+  List<bool> isSelected = [true, false];
   navigateToDisttictPage() async {
     var result = await Navigator.of(context)
         .pushNamed(AppRoutsConstants.DISTICT_ROUTE, arguments: stateId);
@@ -57,58 +57,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
+        style: style,
         keyboardType: TextInputType.number,
         controller: _textController,
         decoration: InputDecoration(
           hintText: 'Enter Your Pincode.',
-          hintStyle: style,
           border: InputBorder.none,
         ),
         onChanged: onItemChanged,
       ),
-    );
-  }
-
-  Widget buildRadioButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-        Radio(
-          value: 1,
-          groupValue: id,
-          onChanged: (val) {
-            setState(() {
-              radioButtonItem = 'Pincode';
-
-              id = 1;
-            });
-          },
-        ),
-        Text(
-          'Pincode',
-          style: new TextStyle(fontSize: 17.0),
-        ),
-        Spacer(),
-        Radio(
-          value: 2,
-          groupValue: id,
-          onChanged: (val) {
-            setState(() {
-              radioButtonItem = 'District';
-              pinCode = "";
-              _textController.clear();
-
-              id = 2;
-            });
-          },
-        ),
-        Text(
-          'District',
-          style: new TextStyle(
-            fontSize: 17.0,
-          ),
-        ),
-      ],
     );
   }
 
@@ -177,6 +134,100 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       isButtonEnabled = false;
     });
+  }
+
+  Widget buildSelectionOption() {
+    return Container(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ToggleButtons(
+              fillColor: Colors.transparent,
+              borderColor: Colors.transparent,
+              borderWidth: 0,
+              constraints:
+                  BoxConstraints.expand(width: constraints.maxWidth / 2),
+              selectedBorderColor: Colors.transparent,
+              borderRadius: BorderRadius.circular(48),
+              onPressed: (index) {
+                setState(() {
+                  for (int i = 0; i < isSelected.length; i++) {
+                    isSelected[i] = i == index;
+                  }
+                  if (isSelected[0]) {
+                    radioButtonItem = "Pincode";
+                  } else {
+                    radioButtonItem = "District";
+                    pinCode = "";
+                    _textController.clear();
+                  }
+                });
+              },
+              isSelected: isSelected,
+              children: [
+                Container(
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected[0]
+                        ? ColorConstants.kBlueColor
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.all(isSelected[0]
+                        ? Radius.circular(48.0)
+                        : Radius.circular(0.0)),
+                  ),
+                  child: Text(
+                    "PINCODE",
+                    style: isSelected[0]
+                        ? TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          )
+                        : TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                  ),
+                ),
+                Container(
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected[1]
+                        ? ColorConstants.kBlueColor
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.all(isSelected[1]
+                        ? Radius.circular(48.0)
+                        : Radius.circular(0.0)),
+                  ),
+                  child: Text(
+                    "DISTRICT",
+                    style: isSelected[1]
+                        ? TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          )
+                        : TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        width: MediaQuery.of(context).size.width,
+        height: 48,
+        decoration: BoxDecoration(
+            color: Color(0xFFFAFAFA),
+            border: Border.all(
+              color: Color(0xFFD6D6D6),
+            ),
+            borderRadius: BorderRadius.circular(48.0)));
   }
 
   Widget buildFomSelection({String key, String value = "", Function function}) {
@@ -283,9 +334,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           fontWeight: FontWeight.normal),
                     ),
                     SizedBox(
-                      height: 30.0,
+                      height: 20.0,
                     ),
-                    buildRadioButton(),
+                    buildSelectionOption(),
+                    SizedBox(
+                      height: 20.0,
+                    ),
                     radioButtonItem == "District"
                         ? Column(children: [
                             buildFomSelection(

@@ -285,7 +285,7 @@ class _AvailableSlotsState extends State<AvailableSlots> {
                         ? ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            padding: EdgeInsets.symmetric(horizontal: 10.0),
+                            padding: EdgeInsets.symmetric(horizontal: 5.0),
                             itemCount: filteredList.length,
                             itemBuilder: (context, index) {
                               var centerInfo = filteredList[index];

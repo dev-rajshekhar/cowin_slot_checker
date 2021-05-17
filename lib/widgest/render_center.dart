@@ -24,7 +24,15 @@ class RenderCenter extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Sessions> sessions = fetchSlotMinAge(center);
     return Card(
-      elevation: 4.0,
+      shape: sessions[0].availableCapacity == 0
+          ? RoundedRectangleBorder(
+              side: BorderSide(color: Color(0xFFD6D6D6), width: 2),
+              borderRadius: BorderRadius.all(
+                Radius.circular(5.0),
+              ),
+            )
+          : null,
+      elevation: sessions[0].availableCapacity > 0 ? 4.0 : 0.0,
       margin: new EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
       child: Container(
         padding: EdgeInsets.all(16.0),
@@ -47,7 +55,9 @@ class RenderCenter extends StatelessWidget {
                   sessions[0].availableCapacity.toString() + " slots",
                   style: TextStyle(
                       fontSize: 16.0,
-                      color: Color(0xFF00C7E2),
+                      color: sessions[0].availableCapacity > 0
+                          ? Color(0xFF00C7E2)
+                          : Color(0xFFFF3333),
                       fontWeight: FontWeight.bold),
                 ),
               ],
@@ -70,30 +80,40 @@ class RenderCenter extends StatelessWidget {
                 Spacer(),
                 TextWithPadding(text: sessions[0].vaccine.toString()),
                 Spacer(),
-                TextButton(
-                  onPressed: () {
-                    Utils.openLink(url: ApiConstant.COWIN_WEB);
-                  },
-                  child: Text(
-                    sessions[0].availableCapacity > 0
-                        ? StringConstants.BOOK_ON_COWIN
-                        : "Booked",
-                    style: TextStyle(
-                        fontSize: 12.0,
-                        color: Color(0xFFFFFFFF),
-                        fontWeight: FontWeight.bold),
-                  ),
-                  style: TextButton.styleFrom(
-                    minimumSize: Size(120.0, 30.0),
-                    backgroundColor: sessions[0].availableCapacity > 0
-                        ? Color(0xFF6C6DC9)
-                        : Color(0xFFFF3333),
-                    primary: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                ),
+                sessions[0].availableCapacity > 0
+                    ? TextButton(
+                        onPressed: () {
+                          sessions[0].availableCapacity > 0 ??
+                              Utils.openLink(url: ApiConstant.COWIN_WEB);
+                        },
+                        child: Text(
+                          StringConstants.BOOK_ON_COWIN,
+                          style: TextStyle(
+                              fontSize: 12.0,
+                              color: Color(0xFFFFFFFF),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        style: TextButton.styleFrom(
+                          minimumSize: Size(120.0, 30.0),
+                          backgroundColor: Color(0xFF6C6DC9),
+                          primary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: Color(0xFFFF3333),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 5.0),
+                        child: Text(
+                          "Booked",
+                          style: TextStyle(fontSize: 12.0, color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                sessions[0].availableCapacity == 0 ? Spacer() : SizedBox()
               ],
             ),
           ],
