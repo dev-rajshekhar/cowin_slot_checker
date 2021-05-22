@@ -83,8 +83,7 @@ class RenderCenter extends StatelessWidget {
                 sessions[0].availableCapacity > 0
                     ? TextButton(
                         onPressed: () {
-                          sessions[0].availableCapacity > 0 ??
-                              Utils.openLink(url: ApiConstant.COWIN_WEB);
+                          Utils.openLink(url: ApiConstant.COWIN_WEB);
                         },
                         child: Text(
                           StringConstants.BOOK_ON_COWIN,
